@@ -3,6 +3,7 @@ package com.github.kr328.clash
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import com.github.kr328.clash.common.util.componentName
+import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.design.AppSettingsDesign
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.design.store.UiStore.Companion.mainActivityAlias
@@ -33,9 +34,14 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
                         else -> Unit
                     }
                 }
-                design.requests.onReceive {
-                    ApplicationObserver.createdActivities.forEach {
-                        it.recreate()
+                design.requests.onReceive { request ->
+                    when (request) {
+                        AppSettingsDesign.Request.ReCreateAllActivities ->
+                            ApplicationObserver.createdActivities.forEach {
+                                it.recreate()
+                            }
+                        AppSettingsDesign.Request.StartAccessControlList ->
+                            startActivity(AccessControlActivity::class.intent)
                     }
                 }
             }
@@ -48,7 +54,9 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
                 RestartReceiver::class.componentName
             )
 
-            return status == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            // the manifest ships the receiver enabled, so an untouched component counts as on
+            return status == PackageManager.COMPONENT_ENABLED_STATE_ENABLED ||
+                    status == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
         }
         set(value) {
             val status = if (value)

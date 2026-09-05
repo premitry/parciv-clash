@@ -4,10 +4,10 @@
     <string name="application_name_meta">Parciv Clash</string>
     <string name="application_name_alpha">Parciv Clash</string>
 
-    <string name="stopped">Stopped</string>
-    <string name="tap_to_start">Tap to start</string>
-    <string name="running">Running</string>
-    <string name="format_traffic_forwarded">%s Forwarded</string>
+    <string name="stopped">Mati</string>
+    <string name="tap_to_start">Tap buat nyalain</string>
+    <string name="running">Aktif</string>
+    <string name="format_traffic_forwarded">%s diteruskan</string>
 
     <string name="proxy">Proxy</string>
     <string name="direct_mode">Direct Mode</string>
@@ -20,9 +20,9 @@
     <string name="format_profile_activated">%s Activated</string>
 
     <string name="logs">Logs</string>
-    <string name="settings">Settings</string>
+    <string name="settings">Setelan</string>
     <string name="help">Help</string>
-    <string name="about">About</string>
+    <string name="about">Tentang</string>
 
     <string name="copied">Copied</string>
 
@@ -86,7 +86,7 @@
     <string name="duplicate">Duplicate</string>
     <string name="active_unsaved_tips">Profile needs to be saved before activation</string>
 
-    <string name="exit_without_save">Exit without Save</string>
+    <string name="exit_without_save">Keluar tanpa simpan</string>
     <string name="exit_without_save_warning">All changed will *LOST*</string>
 
     <string name="raw_cn" translatable="false">cn</string>
@@ -119,13 +119,13 @@
     <string name="delete_all_logs_warn">All historical logs will *LOST*</string>
     <string name="file_exported">File Exported</string>
 
-    <string name="behavior">Behavior</string>
+    <string name="behavior">Otomatis</string>
     <string name="network">Network</string>
-    <string name="interface_">Interface</string>
+    <string name="interface_">Tampilan</string>
     <string name="override">Override</string>
 
-    <string name="auto_restart">Auto Restart</string>
-    <string name="allow_clash_auto_restart">Allow clash auto restart</string>
+    <string name="auto_restart">Nyala otomatis</string>
+    <string name="allow_clash_auto_restart">Nyambung sendiri habis HP nyala ulang, kalau sebelumnya lagi nyala</string>
 
     <string name="route_system_traffic">Route System Traffic</string>
     <string name="routing_via_vpn_service">Auto routing all system traffic via VpnService</string>
@@ -143,9 +143,9 @@
     <string name="allow_ipv6_summary">Allows ipv6 traffic via VpnService</string>
     <string name="system_proxy">System Proxy</string>
     <string name="system_proxy_summary">Attach http proxy to VpnService</string>
-    <string name="access_control_mode">Access Control Mode</string>
-    <string name="access_control_packages">Access Control Packages</string>
-    <string name="access_control_packages_summary">Configure access permission for apps</string>
+    <string name="access_control_mode">Aplikasi yang lewat VPN</string>
+    <string name="access_control_packages">Pilih aplikasi</string>
+    <string name="access_control_packages_summary">Centang aplikasi mana yang ikut lewat VPN</string>
 
     <string name="options_unavailable">Options Unavailable until Clash Stopped</string>
 
@@ -243,26 +243,26 @@
 
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
 
-    <string name="app">App</string>
-    <string name="service">Service</string>
+    <string name="app">Aplikasi</string>
+    <string name="service">Notifikasi</string>
 
-    <string name="dark_mode">Dark Mode</string>
+    <string name="dark_mode">Mode gelap</string>
 
-    <string name="show_traffic">Show Traffic</string>
-    <string name="show_traffic_summary">Auto refresh traffic in notification</string>
+    <string name="show_traffic">Tampilkan trafik</string>
+    <string name="show_traffic_summary">Kecepatan naik-turun ikut jalan di notifikasi</string>
 
-    <string name="follow_system_android_10">Follow System (Android 10+)</string>
-    <string name="always_dark">Always Dark</string>
-    <string name="always_light">Always Light</string>
+    <string name="follow_system_android_10">Ikut sistem (Android 10+)</string>
+    <string name="always_dark">Selalu gelap</string>
+    <string name="always_light">Selalu terang</string>
 
     <string name="tun_stack_mode">Stack Mode</string>
     <string name="tun_stack_system">System Stack</string>
     <string name="tun_stack_gvisor">Gvisor Stack</string>
     <string name="tun_stack_mixed">Mixed Stack</string>
 
-    <string name="allow_all_apps">Allow all apps</string>
-    <string name="allow_selected_apps">Allow selected apps</string>
-    <string name="deny_selected_apps">Deny selected apps</string>
+    <string name="allow_all_apps">Semua aplikasi</string>
+    <string name="allow_selected_apps">Cuma yang dipilih</string>
+    <string name="deny_selected_apps">Semua kecuali yang dipilih</string>
 
     <string name="no_profile_selected">No profile selected</string>
 
@@ -358,8 +358,8 @@
     <string name="external_control_stopped">Clash.Meta service stopped</string>
     <string name="external_control_restarting">Menyambung ulang…</string>
 
-    <string name="hide_app_icon_title">Hide App Icon</string>
-    <string name="hide_app_icon_desc">You can dial *#*#252746382#*#* to open this App</string>
+    <string name="hide_app_icon_title">Sembunyikan ikon app</string>
+    <string name="hide_app_icon_desc">Buka lagi dengan menelepon *#*#252746382#*#*</string>
     <string name="hide_from_recents_title">Hide from Recents</string>
     <string name="hide_from_recents_desc">Hide app from the Recent apps screen</string>
     <string name="import_from_qr_no_permission">Camera access is restricted. Please enable it in Settings.</string>

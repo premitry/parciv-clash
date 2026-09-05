@@ -11,6 +11,7 @@ import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.bindAppBarElevation
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
 
 class AppSettingsDesign(
@@ -22,7 +23,8 @@ class AppSettingsDesign(
     onHideIconChange: (hide: Boolean) -> Unit,
 ) : Design<AppSettingsDesign.Request>(context) {
     enum class Request {
-        ReCreateAllActivities
+        ReCreateAllActivities,
+        StartAccessControlList,
     }
 
     private val binding = DesignSettingsCommonBinding
@@ -47,6 +49,45 @@ class AppSettingsDesign(
                 title = R.string.auto_restart,
                 summary = R.string.allow_clash_auto_restart,
             )
+
+            category(R.string.app)
+
+            selectableList(
+                value = srvStore::accessControlMode,
+                values = AccessControlMode.values(),
+                valuesText = arrayOf(
+                    R.string.allow_all_apps,
+                    R.string.allow_selected_apps,
+                    R.string.deny_selected_apps
+                ),
+                icon = R.drawable.ic_baseline_apps,
+                title = R.string.access_control_mode,
+            ) {
+                enabled = !running
+            }
+
+            clickable(
+                icon = R.drawable.ic_baseline_view_list,
+                title = R.string.access_control_packages,
+                summary = R.string.access_control_packages_summary,
+            ) {
+                enabled = !running
+
+                clicked {
+                    requests.trySend(Request.StartAccessControlList)
+                }
+            }
+
+            category(R.string.service)
+
+            switch(
+                value = srvStore::dynamicNotification,
+                icon = R.drawable.ic_baseline_domain,
+                title = R.string.show_traffic,
+                summary = R.string.show_traffic_summary
+            ) {
+                enabled = !running
+            }
 
             category(R.string.interface_)
 
@@ -75,28 +116,6 @@ class AppSettingsDesign(
                 listener = OnChangedListener {
                     onHideIconChange(uiStore::hideAppIcon.get())
                 }
-            }
-
-            switch(
-                value = uiStore::hideFromRecents,
-                icon = R.drawable.ic_baseline_stack,
-                title = R.string.hide_from_recents_title,
-                summary = R.string.hide_from_recents_desc,
-            ) {
-                listener = OnChangedListener {
-                    requests.trySend(Request.ReCreateAllActivities)
-                }
-            }
-
-            category(R.string.service)
-
-            switch(
-                value = srvStore::dynamicNotification,
-                icon = R.drawable.ic_baseline_domain,
-                title = R.string.show_traffic,
-                summary = R.string.show_traffic_summary
-            ) {
-                enabled = !running
             }
         }
 
