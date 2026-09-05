@@ -2,6 +2,7 @@ package com.github.kr328.clash
 
 import android.content.ClipboardManager
 import android.content.Context
+import com.github.kr328.clash.common.model.ProxyNode
 import com.github.kr328.clash.design.ConfigDesign
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.ui.ToastDuration
@@ -21,16 +22,16 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 
 /**
- * One screen for the whole config, the way Kentang Clash does it: the yaml of a
- * single file profile plus a "+" that turns whatever share links are on the
- * clipboard into proxies right where they belong.
+ * Layar Konfig: yang kelihatan cuma daftar node. "+" mengubah link di clipboard
+ * jadi node, silang menghapus, dan setiap perubahan langsung ditulis jadi
+ * config utuh oleh ConfigDocument lalu dimuat ke clash. Tidak ada tombol simpan
+ * karena tidak ada yang perlu diketik.
  *
- * The profile is deliberately of type File - committing a Url profile would
- * re-download the subscription and throw away everything typed here.
+ * Profilnya sengaja bertipe File: profil Url akan mengunduh langganan lagi dan
+ * membuang isi yang ditulis di sini.
  */
 class ConfigActivity : BaseActivity<ConfigDesign>() {
     private var uuid: UUID? = null
-    private var saved: String = ""
 
     override suspend fun main() {
         val design = ConfigDesign(this)
@@ -40,9 +41,8 @@ class ConfigActivity : BaseActivity<ConfigDesign>() {
         val profile = resolveProfile()
 
         uuid = profile?.uuid
-        saved = profile?.let { readConfig(it) } ?: ""
 
-        design.setTextAsync(saved)
+        design.setNodes(profile?.let { ConfigDocument.parse(readConfig(it)) } ?: emptyList())
 
         while (isActive) {
             select<Unit> {
@@ -55,27 +55,17 @@ class ConfigActivity : BaseActivity<ConfigDesign>() {
                 design.requests.onReceive {
                     when (it) {
                         ConfigDesign.Request.ImportClipboard -> design.importClipboard()
-                        ConfigDesign.Request.Save -> design.saveConfig()
+                        is ConfigDesign.Request.Remove -> design.removeNode(it.index)
                     }
                 }
             }
         }
     }
 
-    override fun onBackPressed() {
-        design?.apply {
-            launch {
-                if (!processing) {
-                    if (text == saved || requestExitWithoutSaving()) finish()
-                }
-            }
-        } ?: return super.onBackPressed()
-    }
-
     /**
-     * The active profile is used as-is when it is a file, otherwise the screen
-     * owns a file profile of its own. Nothing is created until the first save,
-     * so just looking at the editor does not litter the profile list.
+     * Profil aktif dipakai apa adanya kalau bertipe File, kalau tidak layar ini
+     * pegang profil File miliknya sendiri. Tidak ada yang dibuat sampai node
+     * pertama masuk.
      */
     private suspend fun resolveProfile(): Profile? {
         val active = withProfile { queryActive() }
@@ -104,22 +94,47 @@ class ConfigActivity : BaseActivity<ConfigDesign>() {
             return
         }
 
-        val nodes = ShareLink.extract(clipboard).mapNotNull { ShareLink.parse(it) }
+        val incoming = ShareLink.extract(clipboard).mapNotNull { ShareLink.parse(it) }
 
-        if (nodes.isEmpty()) {
+        if (incoming.isEmpty()) {
             showToast(R.string.no_valid_link, ToastDuration.Long)
 
             return
         }
 
-        val result = ConfigDocument.append(text, nodes)
+        val current = nodes.toList()
+        val merged = ConfigDocument.dedupe(current + incoming)
 
-        setTextAsync(result.text, result.offset)
+        setNodes(merged)
 
-        showToast(
-            getString(R.string.format_nodes_imported, result.names.size),
-            ToastDuration.Short,
-        )
+        if (apply(merged)) {
+            showToast(
+                getString(R.string.format_nodes_imported, incoming.size),
+                ToastDuration.Short,
+            )
+        } else {
+            setNodes(current)
+        }
+    }
+
+    private suspend fun ConfigDesign.removeNode(index: Int) {
+        val current = nodes.toList()
+
+        if (index !in current.indices) return
+
+        val removed = current[index]
+        val next = current.toMutableList().apply { removeAt(index) }
+
+        setNodes(next)
+
+        if (apply(next)) {
+            showToast(
+                getString(R.string.format_node_removed, removed.name),
+                ToastDuration.Short,
+            )
+        } else {
+            setNodes(current)
+        }
     }
 
     private suspend fun readClipboard(): String = withContext(Dispatchers.Main) {
@@ -131,16 +146,15 @@ class ConfigActivity : BaseActivity<ConfigDesign>() {
             .joinToString("\n")
     }
 
-    private suspend fun ConfigDesign.saveConfig() {
-        val content = text
+    /**
+     * Tulis ulang seluruh config dari [values] lalu muat ke clash. Commit yang
+     * gagal melepas salinan pending, jadi pemanggil balikin daftar node ke
+     * keadaan sebelumnya supaya tampilan dan isi file tidak beda.
+     */
+    private suspend fun ConfigDesign.apply(values: List<ProxyNode>): Boolean {
+        val content = ConfigDocument.build(values)
 
-        if (content.isBlank()) {
-            showToast(R.string.config_editor_hint, ToastDuration.Long)
-
-            return
-        }
-
-        try {
+        return try {
             withProcessing { updateStatus ->
                 val existing = uuid?.let { withProfile { queryByUUID(it) } }
                 val target = existing?.uuid
@@ -151,8 +165,8 @@ class ConfigActivity : BaseActivity<ConfigDesign>() {
                 var completed = false
 
                 try {
-                    // patch clones the imported files back into pending, so it
-                    // has to run before the new text is written
+                    // patch mengembalikan salinan imported ke pending, jadi harus
+                    // jalan sebelum isi baru ditulis
                     if (existing != null) {
                         withProfile {
                             patch(
@@ -180,8 +194,6 @@ class ConfigActivity : BaseActivity<ConfigDesign>() {
 
                     completed = true
                 } finally {
-                    // a failed commit leaves the imported copy untouched, and a
-                    // profile that was created for this save disappears again
                     if (!completed) withProfile { release(target) }
                 }
 
@@ -190,12 +202,13 @@ class ConfigActivity : BaseActivity<ConfigDesign>() {
                 if (profile != null && !profile.active) withProfile { setActive(profile) }
 
                 uuid = target
-                saved = content
             }
 
-            showToast(R.string.config_saved, ToastDuration.Short)
+            true
         } catch (e: Exception) {
             showExceptionToast(e)
+
+            false
         }
     }
 }

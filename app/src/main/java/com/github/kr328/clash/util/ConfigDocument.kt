@@ -1,63 +1,29 @@
 package com.github.kr328.clash.util
 
+import com.github.kr328.clash.common.model.ProxyNode
+
 /**
- * Append only editing of a clash config document.
+ * Config clash dibangun ulang penuh dari daftar node.
  *
- * Whatever the user typed is never reformatted or round tripped through a yaml
- * parser: new nodes are spliced into the existing proxies block as text and
- * their names are registered in every proxy group that already lists proxies.
- * A document that is still empty gets the full working skeleton instead.
+ * Layar Konfig cuma menampilkan node, jadi sisanya (dns, proxy-groups, rules)
+ * tidak pernah disentuh siapa pun dan aman digenerate ulang setiap simpan.
+ * Dua grup yang selalu ada: PROXY untuk memilih manual, dan AUTO bertipe
+ * fallback yang pindah sendiri kalau node teratas mati. Keduanya selalu berisi
+ * seluruh node yang ada, jadi node baru langsung ikut tanpa diatur lagi.
  */
 object ConfigDocument {
     private const val GROUP_SELECT = "PROXY"
     private const val GROUP_AUTO = "AUTO"
     private const val HEALTH_CHECK_URL = "http://cp.cloudflare.com/generate_204"
 
-    private val nameRegex = Regex("^\\s*(?:-\\s*)?name\\s*:\\s*(.+)")
-    private val builtinTargets = setOf("DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE")
+    private val itemRegex = Regex("^\s*-\s*name\s*:\s*(.+)")
 
     /**
-     * [offset] is where the first freshly inserted line starts, so the editor
-     * can put the cursor on it and scroll it into view.
+     * Dokumen utuh dari [nodes]. Nama kembar otomatis dikasih nomor supaya
+     * clash tidak menolak config karena nama proxy dobel.
      */
-    data class Result(val text: String, val names: List<String>, val offset: Int)
-
-    fun append(source: String, nodes: List<ProxyNode>): Result {
-        if (nodes.isEmpty()) return Result(source, emptyList(), 0)
-
-        val text = source.replace("\r\n", "\n").replace('\r', '\n')
-
-        if (text.isBlank()) return skeleton(dedupe(nodes, HashSet()))
-
-        val lines = ArrayList(text.split("\n"))
-        while (lines.isNotEmpty() && lines.last().isBlank()) lines.removeAt(lines.size - 1)
-
-        val resolved = dedupe(nodes, collectNames(lines, 0, lines.size).toHashSet())
-        val names = resolved.map { it.name }
-
-        val inserted = insertProxies(lines, resolved)
-
-        // everything below only touches lines after the insertion, so the index
-        // stays valid while the rest of the document grows
-        registerNames(lines, names)
-
-        if (indexOfTopLevel(lines, "proxy-groups") < 0) {
-            val start = indexOfTopLevel(lines, "proxies")
-            val known = collectNames(lines, start + 1, blockEndOf(lines, start))
-
-            lines += generateGroups(known)
-        }
-
-        if (indexOfTopLevel(lines, "rules") < 0) {
-            lines += ""
-            lines += "rules:"
-            lines += "  - MATCH," + (firstGroupName(lines) ?: GROUP_SELECT)
-        }
-
-        return Result(lines.joinToString("\n") + "\n", names, offsetOf(lines, inserted))
-    }
-
-    private fun skeleton(nodes: List<ProxyNode>): Result {
+    fun build(nodes: List<ProxyNode>): String {
+        val resolved = dedupe(nodes)
         val lines = ArrayList<String>()
 
         lines += "mixed-port: 7890"
@@ -73,126 +39,67 @@ object ConfigDocument {
         lines += "    - 1.1.1.1"
         lines += "    - 8.8.8.8"
         lines += ""
-        lines += "proxies:"
 
-        val inserted = lines.size
-
-        nodes.forEach { lines += render(it, "  ") }
-
-        lines += generateGroups(nodes.map { it.name })
-        lines += ""
-        lines += "rules:"
-        lines += "  - MATCH," + GROUP_SELECT
-
-        return Result(
-            lines.joinToString("\n") + "\n",
-            nodes.map { it.name },
-            offsetOf(lines, inserted),
-        )
-    }
-
-    private fun offsetOf(lines: List<String>, index: Int): Int {
-        var offset = 0
-
-        for (position in 0 until minOf(index, lines.size)) {
-            offset += lines[position].length + 1
+        if (resolved.isEmpty()) {
+            lines += "proxies: []"
+        } else {
+            lines += "proxies:"
+            resolved.forEach { lines += render(it, "  ") }
         }
-
-        return offset
-    }
-
-    private fun generateGroups(names: List<String>): List<String> {
-        val lines = ArrayList<String>()
 
         lines += ""
         lines += "proxy-groups:"
-        lines += "  - name: " + GROUP_SELECT
+        lines += "  - name: $GROUP_SELECT"
         lines += "    type: select"
         lines += "    proxies:"
-        lines += "      - " + GROUP_AUTO
-        names.forEach { lines += "      - " + yaml(it) }
+        if (resolved.isNotEmpty()) lines += "      - $GROUP_AUTO"
+        resolved.forEach { lines += "      - " + yaml(it.name) }
         lines += "      - DIRECT"
-        lines += "  - name: " + GROUP_AUTO
-        lines += "    type: fallback"
-        lines += "    url: " + HEALTH_CHECK_URL
-        lines += "    interval: 60"
-        lines += "    tolerance: 50"
-        lines += "    proxies:"
-        names.forEach { lines += "      - " + yaml(it) }
 
-        return lines
-    }
-
-    private fun insertProxies(lines: MutableList<String>, nodes: List<ProxyNode>): Int {
-        var start = indexOfTopLevel(lines, "proxies")
-
-        if (start < 0) {
-            lines += ""
-            lines += "proxies:"
-            start = lines.size - 1
+        // grup fallback tanpa anggota ditolak clash, jadi hanya ditulis kalau
+        // memang ada node
+        if (resolved.isNotEmpty()) {
+            lines += "  - name: $GROUP_AUTO"
+            lines += "    type: fallback"
+            lines += "    url: $HEALTH_CHECK_URL"
+            lines += "    interval: 60"
+            lines += "    tolerance: 50"
+            lines += "    proxies:"
+            resolved.forEach { lines += "      - " + yaml(it.name) }
         }
 
-        // "proxies: []" from a template has to become a block list before
-        // anything can be appended under it
-        val inline = lines[start].trimEnd().removePrefix("proxies:").trim()
-        if (inline == "[]" || inline == "[ ]") lines[start] = "proxies:"
+        lines += ""
+        lines += "rules:"
+        lines += "  - MATCH,$GROUP_SELECT"
 
-        val end = blockEndOf(lines, start)
-        val indent = itemIndentOf(lines, start + 1, end)
-        val rendered = ArrayList<String>()
-
-        nodes.forEach { rendered += render(it, indent) }
-
-        lines.addAll(end, rendered)
-
-        return end
-    }
-
-    private fun render(node: ProxyNode, indent: String): List<String> {
-        val keyIndent = indent + "  "
-        val lines = ArrayList<String>()
-
-        lines += indent + "- name: " + yaml(node.name)
-        node.lines.forEach { lines += keyIndent + it }
-
-        return lines
+        return lines.joinToString("\n") + "\n"
     }
 
     /**
-     * Adds every new name to each group that already carries a proxies list, so
-     * a freshly pasted node is immediately selectable and part of the failover
-     * pool. Edits run bottom up to keep the indices below them valid.
+     * Baca balik blok `proxies:` jadi daftar node. Yang dibaca hanya config
+     * hasil [build], jadi gaya blok sudah pasti; entri gaya flow dilewati.
      */
-    private fun registerNames(lines: MutableList<String>, names: List<String>) {
-        val start = indexOfTopLevel(lines, "proxy-groups")
-        if (start < 0) return
+    fun parse(source: String): List<ProxyNode> {
+        val lines = source.replace("\r\n", "\n").replace('\r', '\n').split("\n")
+        val start = indexOfTopLevel(lines, "proxies")
+
+        if (start < 0) return emptyList()
 
         val end = blockEndOf(lines, start)
-        val blockEdits = ArrayList<Pair<Int, String>>()
-        val flowEdits = ArrayList<Int>()
-
+        val result = ArrayList<ProxyNode>()
         var index = start + 1
 
         while (index < end) {
-            val line = lines[index]
-            val trimmed = line.trim()
+            val match = itemRegex.find(lines[index])
 
-            if (!trimmed.startsWith("proxies:")) {
+            if (match == null) {
                 index++
                 continue
             }
 
-            if (trimmed.removePrefix("proxies:").trim().startsWith("[")) {
-                flowEdits += index
-                index++
-                continue
-            }
-
-            val keyIndent = line.takeWhile { it.isWhitespace() }
-            var itemIndent = keyIndent + "  "
-            var first = -1
-            var last = index
-            var lastNode = -1
+            val itemIndent = indentOf(lines[index])
+            val keyIndent = itemIndent + 2
+            val body = ArrayList<String>()
             var scan = index + 1
 
             while (scan < end) {
@@ -203,77 +110,57 @@ object ConfigDocument {
                     continue
                 }
 
-                val candidateIndent = candidate.takeWhile { it.isWhitespace() }
-                if (candidateIndent.length <= keyIndent.length) break
+                val indent = indentOf(candidate)
+                if (indent <= itemIndent) break
 
-                if (candidate.trim().startsWith("- ")) {
-                    itemIndent = candidateIndent
-                    last = scan
-
-                    if (first < 0) first = scan
-                    if (!isBuiltin(candidate.trim().removePrefix("- "))) lastNode = scan
-                }
-
+                body += candidate.substring(minOf(keyIndent, indent))
                 scan++
             }
 
-            // DIRECT and REJECT read as the tail of a select list, so new nodes
-            // go above them instead of behind
-            val position = when {
-                lastNode >= 0 -> lastNode + 1
-                first >= 0 -> first
-                else -> last + 1
-            }
-
-            blockEdits += position to itemIndent
+            result += ProxyNode(unquote(match.groupValues[1]), body)
             index = scan
         }
 
-        val rendered = names.map { yaml(it) }
-
-        for (position in flowEdits.sortedDescending()) {
-            val line = lines[position]
-            val close = line.lastIndexOf(']')
-            if (close < 0) continue
-
-            val head = line.substring(0, close).trimEnd()
-            val separator = if (head.endsWith("[") || head.endsWith(",")) "" else ", "
-
-            lines[position] = head + separator + rendered.joinToString(", ") + line.substring(close)
-        }
-
-        for ((position, indent) in blockEdits.sortedByDescending { it.first }) {
-            lines.addAll(position, rendered.map { indent + "- " + it })
-        }
+        return result
     }
 
-    /** Built in targets are not proxies, so they always stay at the bottom. */
-    private fun isBuiltin(raw: String): Boolean = unquote(raw).uppercase() in builtinTargets
+    /** Nama kembar dapat akhiran nomor, urutan lain tetap. */
+    fun dedupe(nodes: List<ProxyNode>): List<ProxyNode> {
+        val taken = HashSet<String>()
 
-    private fun dedupe(nodes: List<ProxyNode>, taken: MutableSet<String>): List<ProxyNode> =
-        nodes.map { node ->
+        return nodes.map { node ->
             var name = node.name.ifBlank { "node" }
 
             if (taken.contains(name)) {
                 var suffix = 2
-                while (taken.contains(name + " " + suffix)) suffix++
-                name = name + " " + suffix
+                while (taken.contains("$name $suffix")) suffix++
+                name = "$name $suffix"
             }
 
             taken += name
 
             if (name == node.name) node else node.copy(name = name)
         }
+    }
+
+    private fun render(node: ProxyNode, indent: String): List<String> {
+        val keyIndent = "$indent  "
+        val lines = ArrayList<String>()
+
+        lines += indent + "- name: " + yaml(node.name)
+        node.lines.forEach { lines += keyIndent + it }
+
+        return lines
+    }
+
+    private fun indentOf(line: String): Int = line.takeWhile { it.isWhitespace() }.length
 
     private fun indexOfTopLevel(lines: List<String>, key: String): Int =
         lines.indexOfFirst {
-            it.isNotEmpty() && !it[0].isWhitespace() && it.trimEnd().startsWith(key + ":")
+            it.isNotEmpty() && !it[0].isWhitespace() && it.trimEnd().startsWith("$key:")
         }
 
-    /**
-     * Index right after the last line that still belongs to the block opened at
-     * [start], which is also where new entries go.
-     */
+    /** Indeks tepat setelah baris terakhir yang masih milik blok di [start]. */
     private fun blockEndOf(lines: List<String>, start: Int): Int {
         var index = start + 1
         var end = start + 1
@@ -295,38 +182,6 @@ object ConfigDocument {
         }
 
         return end
-    }
-
-    private fun itemIndentOf(lines: List<String>, from: Int, until: Int): String {
-        for (index in from until minOf(until, lines.size)) {
-            val line = lines[index]
-            val trimmed = line.trimStart()
-
-            if (trimmed == "-" || trimmed.startsWith("- ")) {
-                return line.substring(0, line.length - trimmed.length)
-            }
-        }
-
-        return "  "
-    }
-
-    private fun collectNames(lines: List<String>, from: Int, until: Int): List<String> {
-        val result = ArrayList<String>()
-
-        for (index in maxOf(from, 0) until minOf(until, lines.size)) {
-            val match = nameRegex.find(lines[index]) ?: continue
-
-            result += unquote(match.groupValues[1])
-        }
-
-        return result
-    }
-
-    private fun firstGroupName(lines: List<String>): String? {
-        val start = indexOfTopLevel(lines, "proxy-groups")
-        if (start < 0) return null
-
-        return collectNames(lines, start + 1, blockEndOf(lines, start)).firstOrNull()
     }
 
     private fun unquote(raw: String): String {

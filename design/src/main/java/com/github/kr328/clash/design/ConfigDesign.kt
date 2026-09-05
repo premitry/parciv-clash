@@ -2,25 +2,31 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import com.github.kr328.clash.common.model.ProxyNode
 import com.github.kr328.clash.core.model.FetchStatus
+import com.github.kr328.clash.design.adapter.ConfigNodeAdapter
 import com.github.kr328.clash.design.databinding.DesignConfigBinding
 import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
 import com.github.kr328.clash.design.dialog.withModelProgressBar
 import com.github.kr328.clash.design.util.*
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
 
+/**
+ * Satu layar berisi daftar node, tidak ada yaml yang kelihatan: "+" mengubah
+ * link di clipboard jadi node, tombol silang menghapusnya. Sisi config yang
+ * lain (grup, dns, rules) digenerate ConfigDocument di belakang layar, jadi
+ * tidak ada yang bisa dirusak dari sini.
+ */
 class ConfigDesign(context: Context) : Design<ConfigDesign.Request>(context) {
-    enum class Request {
-        ImportClipboard,
-        Save,
+    sealed class Request {
+        object ImportClipboard : Request()
+        data class Remove(val index: Int) : Request()
     }
 
     private val binding = DesignConfigBinding
         .inflate(context.layoutInflater, context.root, false)
+    private val adapter = ConfigNodeAdapter(context, ArrayList(), this::requestRemove)
 
     override val root: View
         get() = binding.root
@@ -28,27 +34,19 @@ class ConfigDesign(context: Context) : Design<ConfigDesign.Request>(context) {
     val processing: Boolean
         get() = binding.processing
 
-    var text: String
-        get() = binding.configText.text?.toString() ?: ""
-        set(value) {
-            binding.configText.setText(value)
-        }
+    val nodes: List<ProxyNode>
+        get() = adapter.values
 
-    suspend fun setTextAsync(value: String) {
+    suspend fun setNodes(values: List<ProxyNode>) {
         withContext(Dispatchers.Main) {
-            binding.configText.setText(value)
-        }
-    }
+            adapter.values.apply {
+                clear()
+                addAll(values)
+            }
 
-    /**
-     * Kentang style: after a conversion the caret lands on the first line that
-     * was just added, so the new node is what the user is looking at.
-     */
-    suspend fun setTextAsync(value: String, selection: Int) {
-        withContext(Dispatchers.Main) {
-            binding.configText.setText(value)
-            binding.configText.setSelection(selection.coerceIn(0, value.length))
-            binding.configText.requestFocus()
+            adapter.notifyDataSetChanged()
+
+            binding.hasNodes = values.isNotEmpty()
         }
     }
 
@@ -73,37 +71,24 @@ class ConfigDesign(context: Context) : Design<ConfigDesign.Request>(context) {
         }
     }
 
-    suspend fun requestExitWithoutSaving(): Boolean {
-        return withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { ctx ->
-                val dialog = MaterialAlertDialogBuilder(context)
-                    .setTitle(R.string.exit_without_save)
-                    .setMessage(R.string.exit_without_save_config)
-                    .setCancelable(true)
-                    .setPositiveButton(R.string.ok) { _, _ -> ctx.resume(true) }
-                    .setNegativeButton(R.string.cancel) { _, _ -> }
-                    .setOnDismissListener { if (!ctx.isCompleted) ctx.resume(false) }
-                    .show()
-
-                ctx.invokeOnCancellation { dialog.dismiss() }
-            }
-        }
-    }
-
     init {
         binding.self = this
+        binding.hasNodes = false
 
         binding.activityBarLayout.applyFrom(context)
 
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        binding.mainList.recyclerList.also {
+            it.bindAppBarElevation(binding.activityBarLayout)
+            it.applyLinearAdapter(context, adapter)
+        }
     }
 
     fun requestImportClipboard() {
         requests.trySend(Request.ImportClipboard)
     }
 
-    fun requestSave() {
-        requests.trySend(Request.Save)
+    private fun requestRemove(index: Int) {
+        requests.trySend(Request.Remove(index))
     }
 
     private fun ModelProgressBarConfigure.applyFrom(status: FetchStatus) {

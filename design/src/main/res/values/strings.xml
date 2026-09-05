@@ -375,13 +375,12 @@
     <!-- Parciv: config editor -->
     <string name="config_editor">Konfig</string>
     <string name="config_editor_summary">Tempel link, langsung jadi config</string>
-    <string name="config_editor_hint">Salin link vless:// / vmess:// / trojan:// lalu tekan tombol +</string>
-    <string name="config_editor_placeholder"># belum ada config, tekan + buat nambah node</string>
     <string name="clipboard_empty">Clipboard kosong</string>
     <string name="no_valid_link">Nggak ketemu link vless / vmess / trojan di clipboard</string>
     <string name="format_nodes_imported">%d node ditambahkan</string>
-    <string name="config_saved">Konfig disimpan</string>
+    <string name="config_no_node">Belum ada node.
+Salin link vless / vmess / trojan, lalu tekan +</string>
+    <string name="format_node_removed">%s dihapus</string>
     <string name="config_reloading">Nyimpen &amp; ngecek config…</string>
-    <string name="exit_without_save_config">Perubahan config belum disimpan. Keluar aja?</string>
     <string name="parciv_profile_name">Parciv</string>
 </resources>

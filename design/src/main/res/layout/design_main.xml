@@ -103,6 +103,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="@dimen/main_card_margin_vertical"
                     android:onClick="@{() -> self.request(Request.OpenConfig)}"
+                    android:visibility="@{clashRunning ? View.GONE : View.VISIBLE}"
                     app:icon="@drawable/ic_baseline_edit"
                     app:subtext="@string/config_editor_summary"
                     app:text="@string/config_editor" />

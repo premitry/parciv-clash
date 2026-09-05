@@ -1,15 +1,9 @@
 package com.github.kr328.clash.util
 
 import android.util.Base64
+import com.github.kr328.clash.common.model.ProxyNode
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-
-/**
- * One clash proxies entry: [lines] is the body without the list marker and
- * without outer indentation. Nested blocks inside [lines] carry their own
- * relative indentation; ConfigDocument decides the outer depth.
- */
-data class ProxyNode(val name: String, val lines: List<String>)
 
 /**
  * Turns vless / vmess / trojan share links into clash-meta proxy entries,

@@ -8,6 +8,9 @@
         <variable
             name="processing"
             type="boolean" />
+        <variable
+            name="hasNodes"
+            type="boolean" />
 
         <import type="android.view.View" />
     </data>
@@ -18,57 +21,33 @@
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
-        <com.github.kr328.clash.design.view.ObservableScrollView
-            android:id="@+id/scroll_root"
+        <include
+            android:id="@+id/main_list"
+            layout="@layout/common_recycler_list"
+            app:insets="@{self.surface.insets}" />
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="none">
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/main_padding_horizontal"
+            android:visibility="@{hasNodes ? View.GONE : View.VISIBLE}">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <View
+                android:layout_width="@dimen/main_logo_size"
+                android:layout_height="@dimen/main_logo_size"
+                android:layout_marginBottom="@dimen/item_padding_vertical"
+                android:background="@drawable/ic_baseline_add" />
+
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="@dimen/main_padding_horizontal"
-                android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
-                android:paddingBottom="@{self.surface.insets.bottom}">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="@dimen/item_padding_vertical">
-
-                    <View
-                        android:layout_width="@dimen/tips_icon_size"
-                        android:layout_height="@dimen/tips_icon_size"
-                        android:layout_marginEnd="@dimen/tips_icon_margin"
-                        android:background="@drawable/ic_outline_info" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/config_editor_hint"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
-                </LinearLayout>
-
-                <EditText
-                    android:id="@+id/config_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@null"
-                    android:enabled="@{!processing}"
-                    android:fontFamily="monospace"
-                    android:gravity="top|start"
-                    android:hint="@string/config_editor_placeholder"
-                    android:importantForAutofill="no"
-                    android:inputType="textMultiLine|textNoSuggestions|textVisiblePassword"
-                    android:minLines="18"
-                    android:paddingVertical="@dimen/item_padding_vertical"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-                    android:textSize="13sp" />
-            </LinearLayout>
-        </com.github.kr328.clash.design.view.ObservableScrollView>
+                android:gravity="center"
+                android:text="@string/config_no_node"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+        </LinearLayout>
 
         <com.github.kr328.clash.design.view.ActivityBarLayout
             android:id="@+id/activity_bar_layout"
@@ -93,9 +72,9 @@
                     android:id="@+id/import_view"
                     android:layout_width="@dimen/item_tailing_component_size"
                     android:layout_height="@dimen/item_tailing_component_size"
+                    android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:layout_marginStart="@dimen/item_tailing_margin"
-                    android:layout_toStartOf="@id/save_view"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="@{!processing}"
                     android:contentDescription="@string/import_from_clipboard"
@@ -103,21 +82,6 @@
                     android:onClick="@{() -> self.requestImportClipboard()}"
                     android:padding="@dimen/toolbar_image_action_padding"
                     android:src="@drawable/ic_baseline_add" />
-
-                <ImageView
-                    android:id="@+id/save_view"
-                    android:layout_width="@dimen/item_tailing_component_size"
-                    android:layout_height="@dimen/item_tailing_component_size"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="@dimen/item_tailing_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="@{!processing}"
-                    android:contentDescription="@string/save"
-                    android:focusable="true"
-                    android:onClick="@{() -> self.requestSave()}"
-                    android:padding="@dimen/toolbar_image_action_padding"
-                    android:src="@drawable/ic_baseline_save" />
 
             </RelativeLayout>
         </com.github.kr328.clash.design.view.ActivityBarLayout>
