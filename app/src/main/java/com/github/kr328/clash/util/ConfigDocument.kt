@@ -16,7 +16,7 @@ object ConfigDocument {
     private const val GROUP_AUTO = "AUTO"
     private const val HEALTH_CHECK_URL = "http://cp.cloudflare.com/generate_204"
 
-    private val itemRegex = Regex("^\s*-\s*name\s*:\s*(.+)")
+    private val itemRegex = Regex("""^\s*-\s*name\s*:\s*(.+)""")
 
     /**
      * Dokumen utuh dari [nodes]. Nama kembar otomatis dikasih nomor supaya
