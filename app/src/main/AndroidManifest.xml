@@ -89,15 +89,19 @@
                 <data android:host="install-config"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="com.github.metacubex.clash.meta.action.START_CLASH" />
+                <action android:name="${applicationId}.action.START_CLASH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.github.metacubex.clash.meta.action.STOP_CLASH" />
+                <action android:name="${applicationId}.action.STOP_CLASH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.github.metacubex.clash.meta.action.TOGGLE_CLASH" />
+                <action android:name="${applicationId}.action.TOGGLE_CLASH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="${applicationId}.action.RESTART_CLASH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -117,6 +121,12 @@
             android:configChanges="uiMode"
             android:exported="false"
             android:label="@string/profiles" />
+        <activity
+            android:name=".ConfigActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/config_editor"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".NewProfileActivity"
             android:configChanges="uiMode"

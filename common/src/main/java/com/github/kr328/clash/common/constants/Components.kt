@@ -8,4 +8,6 @@ object Components {
 
     val MAIN_ACTIVITY = ComponentName(packageName, "$componentsPackageName.MainActivity")
     val PROPERTIES_ACTIVITY = ComponentName(packageName, "$componentsPackageName.PropertiesActivity")
+    val EXTERNAL_CONTROL_ACTIVITY =
+        ComponentName(packageName, "$componentsPackageName.ExternalControlActivity")
 }

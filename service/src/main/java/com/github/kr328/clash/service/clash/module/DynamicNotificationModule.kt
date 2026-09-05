@@ -40,6 +40,7 @@ class DynamicNotificationModule(service: Service) : Module<Unit>(service) {
                 pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
             )
         )
+        .addControlActions(service)
 
     private val notificationManager = NotificationManagerCompat.from(service)
 

@@ -31,15 +31,16 @@ subprojects {
 
     apply(plugin = if (isApp) "com.android.application" else "com.android.library")
 
+    // local.properties wins (dev machine override), otherwise fall back to
+    // gradle.properties / -P flags so CI picks the same values up.
     fun queryConfigProperty(key: String): Any? {
-        val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
+            val localProperties = Properties()
             localProperties.load(localPropertiesFile.inputStream())
-        } else {
-            return null
+            localProperties.getProperty(key)?.let { return it }
         }
-        return localProperties.getProperty(key)
+        return project.findProperty(key)
     }
 
     extensions.configure<BaseExtension> {
@@ -77,7 +78,7 @@ subprojects {
             if (!isApp) {
                 consumerProguardFiles("consumer-rules.pro")
             } else {
-                setProperty("archivesBaseName", "cmfa-$versionName")
+                setProperty("archivesBaseName", "parciv-clash-$versionName")
             }
         }
 

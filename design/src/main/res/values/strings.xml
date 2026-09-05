@@ -1,8 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
-    <string name="launch_name_meta">Clash Meta</string>
-    <string name="launch_name_alpha">Clash Meta Alpha</string>
-    <string name="application_name_meta">Clash Meta for Android</string>
-    <string name="application_name_alpha">Clash Meta for Android Alpha</string>
+    <string name="launch_name_meta">Parciv Clash</string>
+    <string name="launch_name_alpha">Parciv Clash</string>
+    <string name="application_name_meta">Parciv Clash</string>
+    <string name="application_name_alpha">Parciv Clash</string>
 
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>
@@ -356,6 +356,7 @@
     <string name="external_control_activity">External Control</string>
     <string name="external_control_started">Clash.Meta service started</string>
     <string name="external_control_stopped">Clash.Meta service stopped</string>
+    <string name="external_control_restarting">Menyambung ulang…</string>
 
     <string name="hide_app_icon_title">Hide App Icon</string>
     <string name="hide_app_icon_desc">You can dial *#*#252746382#*#* to open this App</string>
@@ -370,4 +371,16 @@
     <string name="shortcut_start_long">Start Clash service</string>
     <string name="shortcut_stop_short">Stop Clash</string>
     <string name="shortcut_stop_long">Stop Clash service</string>
+
+    <!-- Parciv: config editor -->
+    <string name="config_editor">Konfig</string>
+    <string name="config_editor_summary">Tempel link, langsung jadi config</string>
+    <string name="config_editor_hint">Salin link vless:// / vmess:// / trojan:// lalu tekan tombol +</string>
+    <string name="clipboard_empty">Clipboard kosong</string>
+    <string name="no_valid_link">Nggak ketemu link vless / vmess / trojan di clipboard</string>
+    <string name="format_nodes_imported">%d node ditambahkan</string>
+    <string name="config_saved">Konfig disimpan</string>
+    <string name="config_reloading">Nyimpen &amp; ngecek config…</string>
+    <string name="exit_without_save_config">Perubahan config belum disimpan. Keluar aja?</string>
+    <string name="parciv_profile_name">Parciv</string>
 </resources>

@@ -16,8 +16,11 @@ import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import com.github.kr328.clash.design.R
 
@@ -74,6 +77,12 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
             Intents.ACTION_STOP_CLASH -> {
                 stopClash()
             }
+
+            Intents.ACTION_RESTART_CLASH -> {
+                restartClash()
+
+                return
+            }
         }
         return finish()
     }
@@ -93,6 +102,39 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
             return
         }
         Toast.makeText(this, R.string.external_control_started, Toast.LENGTH_LONG).show()
+    }
+
+    /**
+     * Reconnect from the notification action: the tunnel has to be fully down
+     * before it can come back up, otherwise the new one races the teardown of
+     * the old one and the vpn interface is left half configured.
+     */
+    private fun restartClash() {
+        launch {
+            if (withContext(Dispatchers.IO) { isClashRunning() }) {
+                stopClashService()
+
+                var waited = 0L
+
+                while (waited < 5000L && withContext(Dispatchers.IO) { isClashRunning() }) {
+                    delay(250)
+
+                    waited += 250
+                }
+
+                delay(250)
+            }
+
+            val vpnRequest = startClashService()
+
+            Toast.makeText(
+                this@ExternalControlActivity,
+                if (vpnRequest != null) R.string.unable_to_start_vpn else R.string.external_control_restarting,
+                Toast.LENGTH_LONG,
+            ).show()
+
+            finish()
+        }
     }
 
     private fun stopClash() {

@@ -18,4 +18,6 @@
     <string name="provider_files">Provider Files</string>
     <string name="profile_updater">Profile Updater</string>
     <string name="profile_updating">Profile Updating</string>
+    <string name="notification_disconnect">Putuskan</string>
+    <string name="notification_reconnect">Sambung Ulang</string>
 </resources>
