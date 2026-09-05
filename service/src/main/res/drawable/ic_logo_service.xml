@@ -10,10 +10,11 @@
     android:viewportWidth="200"
     android:viewportHeight="200"
     android:tint="@color/color_clash">
+    <!-- glyph spans x 57..143, y 26..174, so it sits centred on the canvas -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M42,26 h34 v148 h-34 z" />
+        android:pathData="M57,26 h34 v148 h-34 z" />
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M76,26 a52,52 0 1 1 0,104 v-26 a26,26 0 1 0 0,-52 z" />
+        android:pathData="M91,26 a52,52 0 1 1 0,104 v-26 a26,26 0 1 0 0,-52 z" />
 </vector>
