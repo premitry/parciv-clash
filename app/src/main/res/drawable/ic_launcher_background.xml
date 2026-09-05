@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- same ramp as the legacy bitmaps, so masked and unmasked launchers match -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="270"
+        android:endColor="#102A4C"
+        android:startColor="#204E8A"
+        android:type="linear" />
+</shape>
