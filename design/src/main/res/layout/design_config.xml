@@ -60,7 +60,7 @@
                     android:enabled="@{!processing}"
                     android:fontFamily="monospace"
                     android:gravity="top|start"
-                    android:hint="@string/config_editor_hint"
+                    android:hint="@string/config_editor_placeholder"
                     android:importantForAutofill="no"
                     android:inputType="textMultiLine|textNoSuggestions|textVisiblePassword"
                     android:minLines="18"

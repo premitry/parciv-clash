@@ -14,6 +14,7 @@ object ConfigDocument {
     private const val HEALTH_CHECK_URL = "http://cp.cloudflare.com/generate_204"
 
     private val nameRegex = Regex("^\\s*(?:-\\s*)?name\\s*:\\s*(.+)")
+    private val builtinTargets = setOf("DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE")
 
     /**
      * [offset] is where the first freshly inserted line starts, so the editor
@@ -189,7 +190,9 @@ object ConfigDocument {
 
             val keyIndent = line.takeWhile { it.isWhitespace() }
             var itemIndent = keyIndent + "  "
+            var first = -1
             var last = index
+            var lastNode = -1
             var scan = index + 1
 
             while (scan < end) {
@@ -206,12 +209,23 @@ object ConfigDocument {
                 if (candidate.trim().startsWith("- ")) {
                     itemIndent = candidateIndent
                     last = scan
+
+                    if (first < 0) first = scan
+                    if (!isBuiltin(candidate.trim().removePrefix("- "))) lastNode = scan
                 }
 
                 scan++
             }
 
-            blockEdits += (last + 1) to itemIndent
+            // DIRECT and REJECT read as the tail of a select list, so new nodes
+            // go above them instead of behind
+            val position = when {
+                lastNode >= 0 -> lastNode + 1
+                first >= 0 -> first
+                else -> last + 1
+            }
+
+            blockEdits += position to itemIndent
             index = scan
         }
 
@@ -232,6 +246,9 @@ object ConfigDocument {
             lines.addAll(position, rendered.map { indent + "- " + it })
         }
     }
+
+    /** Built in targets are not proxies, so they always stay at the bottom. */
+    private fun isBuiltin(raw: String): Boolean = unquote(raw).uppercase() in builtinTargets
 
     private fun dedupe(nodes: List<ProxyNode>, taken: MutableSet<String>): List<ProxyNode> =
         nodes.map { node ->

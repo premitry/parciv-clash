@@ -376,6 +376,7 @@
     <string name="config_editor">Konfig</string>
     <string name="config_editor_summary">Tempel link, langsung jadi config</string>
     <string name="config_editor_hint">Salin link vless:// / vmess:// / trojan:// lalu tekan tombol +</string>
+    <string name="config_editor_placeholder"># belum ada config, tekan + buat nambah node</string>
     <string name="clipboard_empty">Clipboard kosong</string>
     <string name="no_valid_link">Nggak ketemu link vless / vmess / trojan di clipboard</string>
     <string name="format_nodes_imported">%d node ditambahkan</string>
