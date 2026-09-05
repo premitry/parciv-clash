@@ -60,23 +60,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                         }
                         MainDesign.Request.OpenProxy ->
                             startActivity(ProxyActivity::class.intent)
-                        MainDesign.Request.OpenProfiles ->
-                            startActivity(ProfilesActivity::class.intent)
                         MainDesign.Request.OpenConfig ->
                             startActivity(ConfigActivity::class.intent)
-                        MainDesign.Request.OpenProviders ->
-                            startActivity(ProvidersActivity::class.intent)
-                        MainDesign.Request.OpenLogs -> {
-                            if (LogcatService.running) {
-                                startActivity(LogcatActivity::class.intent)
-                            } else {
-                                startActivity(LogsActivity::class.intent)
-                            }
-                        }
                         MainDesign.Request.OpenSettings ->
                             startActivity(AppSettingsActivity::class.intent)
-                        MainDesign.Request.OpenHelp ->
-                            startActivity(HelpActivity::class.intent)
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(queryAppVersionName())
                     }
@@ -119,8 +106,8 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         if (active == null || !active.imported) {
             showToast(DesignR.string.no_profile_selected, ToastDuration.Long) {
-                setAction(DesignR.string.profiles) {
-                    startActivity(ProfilesActivity::class.intent)
+                setAction(DesignR.string.config_editor) {
+                    startActivity(ConfigActivity::class.intent)
                 }
             }
 

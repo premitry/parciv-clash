@@ -264,7 +264,7 @@
     <string name="allow_selected_apps">Cuma yang dipilih</string>
     <string name="deny_selected_apps">Semua kecuali yang dipilih</string>
 
-    <string name="no_profile_selected">No profile selected</string>
+    <string name="no_profile_selected">Belum ada config, bikin dulu di Konfig</string>
 
     <string name="layout">Layout</string>
     <string name="single">Single</string>
@@ -302,7 +302,7 @@
     <string name="keyword">Keyword</string>
 
     <string name="invalid_log_file">Invalid log file</string>
-    <string name="unable_to_start_vpn">Unable to start VPN component</string>
+    <string name="unable_to_start_vpn">Gagal nyalain VPN</string>
 
     <string name="version_updated">App Updated</string>
     <string name="version_updated_tips">The settings have been reseted and the old profiles needs to be saved again.</string>
@@ -353,9 +353,9 @@
     <string name="geofile_imported">%1$s imported</string>
     <string name="toast_profile_updated_complete">Update profile %s completed</string>
     <string name="toast_profile_updated_failed">Update profile %1$s failed: %2$s</string>
-    <string name="external_control_activity">External Control</string>
-    <string name="external_control_started">Clash.Meta service started</string>
-    <string name="external_control_stopped">Clash.Meta service stopped</string>
+    <string name="external_control_activity">Kontrol Cepat</string>
+    <string name="external_control_started">Parciv Clash nyala</string>
+    <string name="external_control_stopped">Parciv Clash mati</string>
     <string name="external_control_restarting">Menyambung ulang…</string>
 
     <string name="hide_app_icon_title">Sembunyikan ikon app</string>
@@ -365,12 +365,12 @@
     <string name="import_from_qr_no_permission">Camera access is restricted. Please enable it in Settings.</string>
     <string name="import_from_qr_exception">An unhandled system exception occurred.</string>
 
-    <string name="shortcut_toggle_short">Toggle Clash</string>
-    <string name="shortcut_toggle_long">Toggle Clash service on/off</string>
-    <string name="shortcut_start_short">Start Clash</string>
-    <string name="shortcut_start_long">Start Clash service</string>
-    <string name="shortcut_stop_short">Stop Clash</string>
-    <string name="shortcut_stop_long">Stop Clash service</string>
+    <string name="shortcut_toggle_short">Nyala/Mati</string>
+    <string name="shortcut_toggle_long">Nyalain atau matiin Parciv Clash</string>
+    <string name="shortcut_start_short">Nyalain</string>
+    <string name="shortcut_start_long">Nyalain Parciv Clash</string>
+    <string name="shortcut_stop_short">Matiin</string>
+    <string name="shortcut_stop_long">Matiin Parciv Clash</string>
 
     <!-- Parciv: config editor -->
     <string name="config_editor">Konfig</string>

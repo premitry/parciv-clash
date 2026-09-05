@@ -79,16 +79,6 @@
             android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="clash"/>
-                <data android:scheme="clashmeta"/>
-                <data android:host="install-config"/>
-            </intent-filter>
-            <intent-filter>
                 <action android:name="${applicationId}.action.START_CLASH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

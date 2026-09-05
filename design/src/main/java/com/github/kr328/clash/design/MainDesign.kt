@@ -17,12 +17,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     enum class Request {
         ToggleStatus,
         OpenProxy,
-        OpenProfiles,
         OpenConfig,
-        OpenProviders,
-        OpenLogs,
         OpenSettings,
-        OpenHelp,
         OpenAbout,
     }
 
